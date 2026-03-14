@@ -95,6 +95,33 @@ This folder contains detailed documentation of the toolbox. Below is a brief int
   将 C3D 文件转换为 OpenSim 所需的 `.trc`（标记点轨迹）和 `.mot`（地面反作用力）文件。  
   Convert C3D files to OpenSim format (`.trc` for marker trajectories, `.mot` for ground reaction forces).
 
+---
+
+## 使用流程 / Typical Workflow
+
+以下是从原始 C3D 文件到最终分析结果的典型步骤：
+
+1. **准备数据**：将所有 C3D 文件放入一个文件夹（如 `D:\experiment_data`）。
+
+2. **通道配置**：
+   - 如果文件间通道命名一致，运行 `python configure.py D:\experiment_data`，按提示选择垂直力及其他分量。
+   - 如果通道可能不同，运行 `python auto_configure.py D:\experiment_data` 自动生成按文件配置。
+   - 配置后会生成 `project_config.json` 或 `file_channels.json`。
+
+3. **特征提取（可选）**：运行 `python action_features.py --plot D:\experiment_data`，查看每个文件的力曲线和特征值，辅助判断动作类型。
+
+4. **批量处理**：运行 `python batch_process_by_type.py`，输入文件夹路径和动作类型（gait/single_jump/double_jump/cmj/cut）。脚本会自动调用对应分析脚本，生成：
+   - 时间戳文件夹内的力曲线图（`images/`）、OpenSim文件（`opensim_files/`）、本次汇总Excel。
+   - 数据文件夹下的累积Excel（如 `步态分析累计版.xlsx`）。
+
+5. **图像拟合**（可选）：运行 `python average_curve_interactive.py`，输入包含 `*_curve.npy` 的文件夹（即上一步的时间戳文件夹），生成平均曲线图。
+
+6. **统计分析**（可选）：运行 `python stat_analysis_interactive.py`，对累积Excel进行t检验、方差分析等，获得统计图表和报告。
+
+此流程覆盖了从原始数据到科研产出的全部环节，各步骤相互衔接，数据流向清晰。
+
+---
+
 ## 常见问题 / Frequently Asked Questions
 
 ### 1. 如何选择正确的力通道？ / How to select the correct force channel?
