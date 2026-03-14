@@ -1,11 +1,11 @@
 # -*- coding: utf-8 -*-
 """
-自动配置文件生成工具 (auto_config.py)
-功能：自动为文件夹内所有C3D文件配置垂直力通道（排除力矩通道），
+手动配置文件生成工具 (manual_configure.py)
+功能：遍历文件夹内所有C3D文件，让用户手动选择垂直力通道，
       并自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy），
-      直接生成 project_config.json。
+      生成按文件的 project_config.json。
 使用方式：
-    python auto_config.py <文件夹路径>
+    python manual_configure.py <文件夹路径>
 """
 
 import os
@@ -20,6 +20,7 @@ def clean_path(path):
     return path.strip().lstrip('\u202a').lstrip('\u200e').lstrip('\u200f')
 
 def get_channel_info(acq):
+    """返回所有模拟通道的标签和绝对值最大值（用于排序）"""
     labels = []
     max_vals = []
     for i in range(acq.GetAnalogs().GetItemNumber()):
@@ -34,18 +35,16 @@ def get_channel_info(acq):
         max_vals.append(max_val)
     return labels, max_vals
 
-def is_momentum(label):
-    """判断是否为力矩通道（根据常见力矩关键词）"""
-    upper = label.upper()
-    return any(kw in upper for kw in ['MX', 'MY', 'MZ'])
-
 def extract_plate_number(label):
+    """从通道标签中提取最后一个连续数字作为板号，返回数字字符串或None"""
     numbers = re.findall(r'\d+', label)
-    return numbers[-1] if numbers else None
+    if numbers:
+        return numbers[-1]
+    return None
 
 def main():
     if len(sys.argv) < 2:
-        print("用法: python auto_config.py <文件夹路径>")
+        print("用法: python manual_configure.py <文件夹路径>")
         sys.exit(1)
 
     folder = clean_path(sys.argv[1])
@@ -58,20 +57,36 @@ def main():
         print("文件夹中没有 .c3d 文件")
         return
 
+    try:
+        top_n = int(input("请输入要显示的前几个候选通道 (默认 5): ").strip() or "5")
+    except:
+        top_n = 5
+
     file_channels = {}
     for filename in sorted(c3d_files):
         file_path = os.path.join(folder, filename)
-        print(f"处理: {filename}")
+        print(f"\n处理文件: {filename}")
         acq = c3d_utils.read_c3d(file_path)
         labels, max_vals = get_channel_info(acq)
+        sorted_indices = np.argsort(max_vals)[::-1]
 
-        candidate_indices = [i for i, label in enumerate(labels) if not is_momentum(label)]
-        if not candidate_indices:
-            print(f"警告: {filename} 中未找到非力矩通道，跳过")
-            continue
+        print(f"模拟通道最大值排序 (前 {top_n}):")
+        print("  排名 | 编号 | 标签                 | 最大值")
+        print("  -----|------|----------------------|----------")
+        for rank, idx in enumerate(sorted_indices[:top_n], start=1):
+            print(f"  {rank:4d} | {idx:4d} | {labels[idx]:20s} | {max_vals[idx]:8.2f}")
 
-        best_idx = max(candidate_indices, key=lambda i: max_vals[i])
-        fz_label = labels[best_idx]
+        while True:
+            try:
+                choice = input("请输入垂直力 (Fz) 通道的编号 (必须选择): ").strip()
+                idx = int(choice)
+                if 0 <= idx < len(labels):
+                    fz_label = labels[idx]
+                    break
+                else:
+                    print("编号超出范围，请重新输入。")
+            except ValueError:
+                print("请输入数字编号。")
 
         chan = {
             'force_vz': fz_label,
@@ -102,7 +117,7 @@ def main():
                         chan[comp] = cand
                         break
 
-            # 匹配 COP X 和 Y
+            # 匹配 COP X 和 Y（常见命名）
             cop_candidates_x = [
                 f'COP{plate_num}.X',
                 f'COP{plate_num}_X',
@@ -124,13 +139,19 @@ def main():
                     chan['cop_y'] = cand
                     break
 
+            print(f"自动匹配结果: Fx={chan['force_vx']}, Fy={chan['force_vy']}, "
+                  f"Mx={chan['torque_x']}, My={chan['torque_y']}, Mz={chan['torque_z']}, "
+                  f"COPx={chan['cop_x']}, COPy={chan['cop_y']}")
+        else:
+            print("警告：无法从标签中提取板号，其他分量将保持为空。")
+
         file_channels[filename] = chan
 
     config = {'file_channels': file_channels}
     output_path = os.path.join(folder, 'project_config.json')
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=4, ensure_ascii=False)
-    print(f"配置文件已生成: {output_path}")
+    print(f"\n配置文件已生成: {output_path}")
 
 if __name__ == '__main__':
     main()
