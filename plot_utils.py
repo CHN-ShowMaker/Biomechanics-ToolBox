@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-统一绘图工具，处理中文字体和事件标记
+统一绘图工具，处理中文字体和事件标记 (双语版)
 """
 
 import matplotlib.pyplot as plt
@@ -18,7 +18,7 @@ def plot_force_with_events(force, fs, events, title, save_path=None):
     """
     time = np.arange(len(force)) / fs
     plt.figure(figsize=(10, 4))
-    plt.plot(time, force, 'b-', label='垂直力')
+    plt.plot(time, force, 'b-', label='垂直力 Vertical force')
     colors = {'hs': 'g', 'to': 'r', 'takeoff': 'g', 'landing': 'r',
               'takeoff_peak': 'go', 'landing_peak': 'ro'}
     for name, frames in events.items():
@@ -31,11 +31,11 @@ def plot_force_with_events(force, fs, events, title, save_path=None):
             else:
                 plt.plot(time[f], force[f], colors.get(name, 'ko'), markersize=8,
                          label=name if f==frames[0] else '')
-    plt.xlabel('时间 (s)')
-    plt.ylabel('力 (N)')
+    plt.xlabel('时间 (s) / Time (s)')
+    plt.ylabel('力 (N) / Force (N)')
     plt.title(title)
     plt.legend()
-    plt.grid(True)
+    plt.grid(True, alpha=0.3)
     plt.tight_layout()
     if save_path:
         plt.savefig(save_path, dpi=300)

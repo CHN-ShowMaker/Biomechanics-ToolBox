@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-C3D 转 OpenSim 格式模块 (适配3.0核心模块)
+C3D 转 OpenSim 格式模块 (双语版)
 优先使用配置文件中的通道映射，并应用校准矩阵。
 """
 
@@ -31,7 +31,7 @@ def c3d_to_trc(c3d_file, trc_file, marker_units='mm'):
             point_data.append(values)
 
     if len(point_data) == 0:
-        raise ValueError("未找到任何标记点数据")
+        raise ValueError("未找到任何标记点数据 / No marker data found")
 
     marker_array = np.stack(point_data, axis=1)
     frames = marker_array.shape[0]
@@ -66,7 +66,7 @@ def c3d_to_trc(c3d_file, trc_file, marker_units='mm'):
                 line += f"{row[col]:.6f}\t"
             f.write(line + '\n')
 
-    print(f"已生成 .trc 文件: {trc_file}")
+    print(f"已生成 .trc 文件: {trc_file} / .trc file generated: {trc_file}")
 
 
 def c3d_to_grf_mot(c3d_file, mot_file):
@@ -79,12 +79,10 @@ def c3d_to_grf_mot(c3d_file, mot_file):
     reader.Update()
     acq = reader.GetOutput()
 
-    # 获取校准后的完整数据字典
     force_dict, fs = c3d_utils.get_force_data(acq, c3d_file)
     frames = len(force_dict['Fz'])
     time = np.arange(frames) / fs
 
-    # 构建 DataFrame，列名符合 OpenSim 要求
     df = pd.DataFrame({
         'time': time,
         'ground_force_vx': force_dict['Fx'],
@@ -98,7 +96,6 @@ def c3d_to_grf_mot(c3d_file, mot_file):
         'ground_torque_z': force_dict['Mz'],
     })
 
-    # 写入 .mot 文件
     with open(mot_file, 'w') as f:
         f.write(f'name {os.path.basename(mot_file)}\n')
         f.write(f'datacolumns {len(df.columns)}\n')
@@ -109,4 +106,4 @@ def c3d_to_grf_mot(c3d_file, mot_file):
         for _, row in df.iterrows():
             f.write('\t'.join(['{:.6f}'.format(v) for v in row]) + '\n')
 
-    print(f"已生成 .mot 文件: {mot_file}")
+    print(f"已生成 .mot 文件: {mot_file} / .mot file generated: {mot_file}")

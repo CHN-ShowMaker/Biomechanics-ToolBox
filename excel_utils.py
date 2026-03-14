@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Excel 写入工具
+Excel 写入工具 (双语版)
 """
 
 import pandas as pd
@@ -18,4 +18,4 @@ def append_to_excel(data_dict, excel_path):
     else:
         df_combined = df_new
     df_combined.to_excel(excel_path, index=False)
-    print(f"结果已追加至 {excel_path}")
+    print(f"结果已追加至 {excel_path} / Results appended to {excel_path}")
