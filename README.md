@@ -38,7 +38,7 @@ pip install -r requirements.txt
 ```
 ## 示例数据
 
-本仓库的 `examples/` 文件夹中提供了三个示例C3D文件（来源于 [示例C3D文件官网](https://www.c3d.org/sampledata.html)），你可以直接用它们来测试工具箱的流程。
+本仓库的 `Sample03/` 文件夹中提供了三个示例C3D文件（来源于 [C3D官网](https://www.c3d.org/sampledata.html)），你可以直接用它们来测试工具箱的流程。
 
 你也可以从 [示例C3D文件官网](https://www.c3d.org/sampledata.html) 下载更多示例文件进行测试。
 
@@ -58,7 +58,7 @@ pip install -r requirements.txt
 3. **批量处理**：
    ```bash
    python batch_process_by_type.py
-   ```
+   ```a
    输入文件夹路径和动作类型（gait/single_jump/double_jump/cmj/cut），结果保存在时间戳文件夹（如 `output_20250315_...`）中。
 4. **（可选）特征提取**：
    ```bash
@@ -119,7 +119,7 @@ pip install -r requirements.txt
 
 ## Example Data
 
-The `examples/` folder in this repository contains three sample C3D files (from the [C3D website](https://www.c3d.org/sampledata.html)) that you can use to test the toolbox workflow.
+The `Sample03/` folder in this repository contains three sample C3D files (from the [C3D website](https://www.c3d.org/sampledata.html)) that you can use to test the toolbox workflow.
 
 You can also download more sample files from the [C3D website](https://www.c3d.org/sampledata.html) for testing.
 
