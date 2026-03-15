@@ -134,7 +134,6 @@ This folder contains detailed documentation of the toolbox. Below is a brief int
 
 ---
 
-markdown
 ## 常见问题 / Frequently Asked Questions
 
 ### 1. 如何选择正确的力通道？ / How to select the correct force channel?
