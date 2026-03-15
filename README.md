@@ -36,6 +36,11 @@ conda create -n bio python=3.9
 conda activate bio
 pip install -r requirements.txt
 ```
+## 示例数据
+
+本仓库的 `examples/` 文件夹中提供了三个示例C3D文件（来源于 [示例C3D文件官网](https://www.c3d.org/sampledata.html)），你可以直接用它们来测试工具箱的流程。
+
+你也可以从 [示例C3D文件官网](https://www.c3d.org/sampledata.html) 下载更多示例文件进行测试。
 
 ### 快速开始
 1. **准备数据**：将 C3D 文件放入一个文件夹，例如 `data/`。
@@ -111,6 +116,12 @@ conda create -n bio python=3.9
 conda activate bio
 pip install -r requirements.txt
 ```
+
+## Example Data
+
+The `examples/` folder in this repository contains three sample C3D files (from the [C3D website](https://www.c3d.org/sampledata.html)) that you can use to test the toolbox workflow.
+
+You can also download more sample files from the [C3D website](https://www.c3d.org/sampledata.html) for testing.
 
 ### Quick Start
 1. **Prepare data**: place your C3D files in a folder, e.g., `data/`.
