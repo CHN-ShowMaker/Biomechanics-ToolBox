@@ -3,6 +3,8 @@
 本文件夹包含工具箱的详细文档。以下是各个主要脚本的功能简介及基本用法。
 This folder contains detailed documentation of the toolbox. Below is a brief introduction and basic usage of each main script.
 
+---
+
 ## 核心工具模块 / Core Utility Modules
 
 - **`c3d_utils.py`**  
@@ -21,19 +23,19 @@ This folder contains detailed documentation of the toolbox. Below is a brief int
   全局配置文件，可调整滤波频率、阈值比例、OpenSim 导出开关等。  
   Global configuration file – adjust filter cutoff, threshold ratios, OpenSim export switch, etc.
 
+---
+
 ## 通道配置工具 / Channel Configuration Tools
 
-- **`configure.py`**  
-  交互式手动配置通道，生成 `project_config.json`（适用于所有文件通道一致的情况）。  
-  Interactive manual channel configuration, generates `project_config.json` (when channel assignments are consistent across files).
+- **`manual_config.py`**  
+  手动为每个文件选择垂直力通道，并自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy）。运行时显示前 N 个候选通道（按最大值排序），用户输入编号后，程序自动根据板号匹配其他分量。  
+  Manually select the vertical force channel per file, and automatically match other components (Fx, Fy, Mx, My, Mz, COPx, COPy) based on plate number. During execution, the top candidate channels (sorted by maximum value) are shown; after user input, the program automatically matches other components.
 
-- **`auto_configure.py`**  
-  自动为每个文件推荐垂直力通道，生成 `file_channels.json`（适用于文件间通道不一致的情况）。  
-  Automatically recommend vertical force channels per file, generates `file_channels.json` (when channel assignments vary between files).
+- **`auto_config.py`**  
+  全自动配置。自动排除力矩通道（标签含 MX/MY/MZ），选择剩余通道中最大值最大的作为垂直力，然后根据板号匹配其他分量，直接生成配置文件。  
+  Fully automatic configuration. Excludes moment channels (labels containing MX/MY/MZ), selects the channel with the highest maximum among the remaining as vertical force, and matches other components based on plate number. Generates the configuration file directly.
 
-- **`suggest_channel.py`**  
-  分析第一个 C3D 文件，显示前 N 个最大值通道并生成波形图，辅助人工选择力通道。  
-  Analyze the first C3D file, display the top N channels by maximum value, and generate waveform plots to assist manual channel selection.
+---
 
 ## 特征提取与动作分析 / Feature Extraction & Movement Analysis
 
@@ -61,17 +63,23 @@ This folder contains detailed documentation of the toolbox. Below is a brief int
   侧切动作分析：检测冲击峰，计算峰值力、冲量，生成曲线图，导出 OpenSim 文件。  
   Cutting movement analysis: detect impact peak, compute peak force and impulse, generate plots, export OpenSim files.
 
+---
+
 ## 批量处理与调度 / Batch Processing & Scheduling
 
 - **`batch_process_by_type.py`**  
   批量处理主脚本。输入文件夹路径和动作类型，自动调用对应的分析脚本处理所有 C3D 文件，并整理输出。  
   Main batch processing script. Input folder path and movement type, automatically call the corresponding analysis script for all C3D files, and organize outputs.
 
+---
+
 ## 统计分析 / Statistical Analysis
 
-- **`stat_analysis_interactive.py`**  
+- **`stat_analysis.py`**  
   交互式统计分析。读取累积 Excel，进行 t 检验、方差分析、相关分析，生成统计图表和报告。  
   Interactive statistical analysis. Read cumulative Excel, perform t‑tests, ANOVA, correlation, generate statistical plots and reports.
+
+---
 
 ## 图像拟合 / Curve Averaging
 
@@ -79,15 +87,19 @@ This folder contains detailed documentation of the toolbox. Below is a brief int
   读取归一化曲线文件（`.npy`），计算平均曲线和标准差带，绘制典型曲线图。  
   Read normalized curve files (`.npy`), compute mean curve and standard deviation band, generate typical curve plots.
 
+---
+
 ## 诊断工具 / Diagnostic Tools
 
-- **`check_forceplate_interactive.py`**  
+- **`check_forceplate.py`**  
   检查 C3D 文件的力板类型、校准矩阵和原始值，帮助定位数据问题。  
   Check force plate type, calibration matrix, and raw values of C3D files to help diagnose data issues.
 
 - **`test_calibration.py`**  
   简单测试脚本，输出指定文件的校准矩阵和力数据。  
   Simple test script to output calibration matrix and force data for a given file.
+
+---
 
 ## OpenSim 导出 / OpenSim Export
 
@@ -99,56 +111,83 @@ This folder contains detailed documentation of the toolbox. Below is a brief int
 
 ## 使用流程 / Typical Workflow
 
-以下是从原始 C3D 文件到最终分析结果的典型步骤：
+1. **准备数据**：将所有 C3D 文件放入一个文件夹（如 `data/`）。  
+   Place your C3D files in a folder (e.g., `data/`).
 
-1. **准备数据**：将所有 C3D 文件放入一个文件夹（如 `D:\experiment_data`）。
+2. **通道配置**：根据数据规范程度选择手动或自动配置。  
+   Configure channels according to data regularity, either manually or automatically.
 
-2. **通道配置**：
-   - 如果文件间通道命名一致，运行 `python configure.py D:\experiment_data`，按提示选择垂直力及其他分量。
-   - 如果通道可能不同，运行 `python auto_configure.py D:\experiment_data` 自动生成按文件配置。
-   - 配置后会生成 `project_config.json` 或 `file_channels.json`。
+3. **（可选）特征提取**：运行 `action_features.py --plot data/` 查看力曲线和特征值，辅助判断动作类型。  
+   (Optional) Run `action_features.py --plot data/` to inspect force curves and features, helping you determine the movement type.
 
-3. **特征提取（可选）**：运行 `python action_features.py --plot D:\experiment_data`，查看每个文件的力曲线和特征值，辅助判断动作类型。
+4. **批量处理**：运行 `batch_process_by_type.py`，输入文件夹和动作类型，等待处理完成。  
+   Run `batch_process_by_type.py`, enter folder path and movement type, and wait for completion.
 
-4. **批量处理**：运行 `python batch_process_by_type.py`，输入文件夹路径和动作类型（gait/single_jump/double_jump/cmj/cut）。脚本会自动调用对应分析脚本，生成：
-   - 时间戳文件夹内的力曲线图（`images/`）、OpenSim文件（`opensim_files/`）、本次汇总Excel。
-   - 数据文件夹下的累积Excel（如 `步态分析累计版.xlsx`）。
+5. **查看结果**：在时间戳文件夹中找到图片、OpenSim 文件、本次汇总 Excel；累积 Excel 位于原文件夹中。  
+   Locate results in the timestamped folder (images, OpenSim files, summary Excel); cumulative Excel files are in the original data folder.
 
-5. **图像拟合**（可选）：运行 `python average_curve_interactive.py`，输入包含 `*_curve.npy` 的文件夹（即上一步的时间戳文件夹），生成平均曲线图。
+6. **（可选）统计分析**：运行 `stat_analysis.py` 对累积 Excel 进行统计检验。  
+   (Optional) Run `stat_analysis.py` to perform statistical tests on cumulative Excel.
 
-6. **统计分析**（可选）：运行 `python stat_analysis_interactive.py`，对累积Excel进行t检验、方差分析等，获得统计图表和报告。
-
-此流程覆盖了从原始数据到科研产出的全部环节，各步骤相互衔接，数据流向清晰。
+7. **（可选）图像拟合**：运行 `average_curve_interactive.py` 对多次试验取平均曲线。  
+   (Optional) Run `average_curve_interactive.py` to generate mean curves from multiple trials.
 
 ---
 
+markdown
 ## 常见问题 / Frequently Asked Questions
 
 ### 1. 如何选择正确的力通道？ / How to select the correct force channel?
-- 先运行 `suggest_channel.py` 查看候选通道波形，确定垂直力通道编号。  
-  First run `suggest_channel.py` to view candidate channel waveforms and determine the vertical force channel index.
-- 如果所有文件通道一致，用 `configure.py` 手动配置；如果不一致，用 `auto_configure.py` 自动生成按文件配置。  
-  If channel assignments are consistent across files, use `configure.py` for manual configuration; if they vary, use `auto_configure.py` to generate per‑file configuration.
+- 先用 `auto_config.py` 尝试自动配置。如果结果合理（力值几百到几千N），则可直接使用。
+- 如果自动配置不合理，或你想精细控制，用 `manual_config.py` 手动选择。程序会显示前 N 个候选通道（按最大值排序），你只需输入编号，其他分量会自动匹配。
+- 还可以先运行 `action_features.py --plot` 查看波形，辅助判断。
 
-### 2. 批量处理时如何指定动作类型？ / How to specify movement type during batch processing?
-- 运行 `batch_process_by_type.py`，按提示输入动作类型代码：  
-  Run `batch_process_by_type.py` and enter the movement type code when prompted:
-  - `gait`：步态 / gait
-  - `single_jump`：跑动单腿跳 / running single‑leg jump
-  - `double_jump`：跑动双腿跳 / running double‑leg jump
-  - `cmj`：原地纵跳 / countermovement jump
-  - `cut`：侧切 / cutting
+- First try automatic configuration with `auto_config.py`. If the results are reasonable (force values in the hundreds to thousands of N), you can use it directly.
+- If automatic configuration is unsatisfactory or you need precise control, use `manual_config.py` to manually select the vertical force channel. The program will display the top N candidate channels (sorted by maximum value); after you enter the index, other components are automatically matched.
+- You can also run `action_features.py --plot` first to inspect the waveforms, which aids in decision making.
 
-### 3. 结果文件保存在哪里？ / Where are the result files saved?
-- 每次运行 `batch_process_by_type.py` 会在数据文件夹下生成一个时间戳文件夹（如 `output_20250314_...`），其中包含：  
-  Each run of `batch_process_by_type.py` creates a timestamped folder (e.g., `output_20250314_...`) in the data folder, containing:
-  - `images/`：力曲线图 / force curve plots
-  - `opensim_files/`：按文件分类的 `.trc`/`.mot` 文件 / `.trc`/`.mot` files organized by file
-  - `动作类型_汇总.xlsx`：本次运行的指标汇总表 / summary Excel for this run
-- 同时，指标会追加到数据文件夹下的累积 Excel（如 `步态分析累计版.xlsx`）。  
-  Metrics are also appended to cumulative Excel files in the data folder (e.g., `步态分析累计版.xlsx`).
+### 2. 自动配置时如何排除力矩通道？ / How are moment channels excluded during automatic configuration?
+`auto_config.py` 会自动识别标签中含 `MX`, `MY`, `MZ` 的通道并将其排除，避免将大数值的力矩误认为力。
 
----
+`auto_config.py` automatically identifies channels with labels containing `MX`, `MY`, or `MZ` and excludes them, preventing large moment values from being mistaken as forces.
 
-本文档会持续更新。如有疑问，欢迎在 GitHub Issues 中提出。  
+### 3. 配置文件 `project_config.json` 的格式是什么？ / What is the format of the configuration file `project_config.json`?
+```json
+{
+    "file_channels": {
+        "filename1.c3d": {
+            "force_vz": "Fz2",
+            "force_vx": "Fx2",
+            "force_vy": "Fy2",
+            "torque_x": "Mx2",
+            "torque_y": "My2",
+            "torque_z": "Mz2",
+            "cop_x": "COP2.X",
+            "cop_y": "COP2.Y"
+        },
+        "filename2.c3d": { ... }
+    }
+}
+```
+未找到的分量会保留为 null。
+Components that are not found remain as null.
+
+### 4. 为什么我的力值只有几十N，或达到几万N？ / Why are my force values only tens of N, or as high as tens of thousands of N?
+几十N：通常是因为选择了错误的通道（例如加速度计），或数据本身需要校准矩阵。请用 `check_forceplate.py` 检查力板类型和校准矩阵。
+
+几万N：几乎肯定是误选了力矩通道（Mx/My/Mz），请用 `auto_config.py` 重新配置（它会自动排除力矩通道），或手动选择正确的力通道。
+
+Tens of N: usually caused by selecting the wrong channel (e.g., an accelerometer) or because the data itself requires a calibration matrix. Use `check_forceplate.py` to inspect the force plate type and calibration matrix.
+
+Tens of thousands of N: almost certainly due to mistakenly selecting a moment channel (Mx/My/Mz). Reconfigure with `auto_config.py` (which automatically excludes moment channels) or manually select the correct force channel.
+
+### 5. 如何处理文件间通道不一致？ / How to handle inconsistent channels across files?
+使用 `manual_config.py` 或 `auto_config.py` 都会生成按文件配置的 `project_config.json`，每个文件可独立指定通道，完美解决通道不一致问题。
+Both `manual_config.py` and `auto_config.py` generate a per‑file configuration in `project_config.json`, allowing each file to specify its own channels independently, perfectly solving the problem of channel inconsistency across files.
+
+### 6. 如何导出 OpenSim 文件？ / How to export OpenSim files?
+批量处理时会自动调用 `c3d_to_opensim_finals.py` 生成 `.trc` 和 `.mot` 文件，保存在时间戳文件夹的 opensim_files/ 子目录中。你可以在 OpenSim 中直接使用这些文件。
+During batch processing, `c3d_to_opensim_finals.py` is automatically called to generate `.trc` and `.mot` files, which are saved in the opensim_files/ subfolder of the timestamped output folder. These files can be directly used in OpenSim.
+
+本文档会持续更新。如有疑问，欢迎在 GitHub Issues 中提出。
 This document is continuously updated. If you have any questions, feel free to open an issue on GitHub.
