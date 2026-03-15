@@ -1,8 +1,11 @@
+## `docs/README.md`（中英双语完整版）
+
+```
 # Biomechanics Toolbox 详细使用说明 / Detailed Documentation
 
 本文件夹包含工具箱的详细文档。以下是各个主要脚本的功能简介及基本用法。
 This folder contains detailed documentation of the toolbox. Below is a brief introduction and basic usage of each main script.
-
+```
 ---
 
 ## 核心工具模块 / Core Utility Modules
@@ -28,12 +31,12 @@ This folder contains detailed documentation of the toolbox. Below is a brief int
 ## 通道配置工具 / Channel Configuration Tools
 
 - **`manual_config.py`**  
-  手动为每个文件选择垂直力通道，并自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy）。运行时显示前 N 个候选通道（按最大值排序），用户输入编号后，程序自动根据板号匹配其他分量。  
-  Manually select the vertical force channel per file, and automatically match other components (Fx, Fy, Mx, My, Mz, COPx, COPy) based on plate number. During execution, the top candidate channels (sorted by maximum value) are shown; after user input, the program automatically matches other components.
+  手动为每个文件选择垂直力通道，并自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy）。运行时首先提示输入文件夹路径，然后逐个文件显示前 N 个候选通道（按最大值排序），用户输入编号后，程序自动根据板号匹配其他分量。  
+  Manually select the vertical force channel per file, and automatically match other components (Fx, Fy, Mx, My, Mz, COPx, COPy) based on plate number. The script first prompts for the folder path, then for each file it shows the top candidate channels (sorted by maximum value); after user input, it automatically matches other components.
 
 - **`auto_config.py`**  
-  全自动配置。自动排除力矩通道（标签含 MX/MY/MZ），选择剩余通道中最大值最大的作为垂直力，然后根据板号匹配其他分量，直接生成配置文件。  
-  Fully automatic configuration. Excludes moment channels (labels containing MX/MY/MZ), selects the channel with the highest maximum among the remaining as vertical force, and matches other components based on plate number. Generates the configuration file directly.
+  全自动配置。运行时首先提示输入文件夹路径，然后自动排除力矩通道（标签含 MX/MY/MZ），选择剩余通道中最大值最大的作为垂直力，并根据板号匹配其他分量，直接生成配置文件。无需用户干预。  
+  Fully automatic configuration. The script first prompts for the folder path, then automatically excludes moment channels (labels containing MX/MY/MZ), selects the channel with the highest maximum among the remaining as vertical force, and matches other components based on plate number. No further user interaction required.
 
 ---
 
@@ -62,51 +65,7 @@ This folder contains detailed documentation of the toolbox. Below is a brief int
 - **`cutting_analysis_finals.py`**  
   侧切动作分析：检测冲击峰，计算峰值力、冲量，生成曲线图，导出 OpenSim 文件。  
   Cutting movement analysis: detect impact peak, compute peak force and impulse, generate plots, export OpenSim files.
-
----
-
-## 批量处理与调度 / Batch Processing & Scheduling
-
-- **`batch_process_by_type.py`**  
-  批量处理主脚本。输入文件夹路径和动作类型，自动调用对应的分析脚本处理所有 C3D 文件，并整理输出。  
-  Main batch processing script. Input folder path and movement type, automatically call the corresponding analysis script for all C3D files, and organize outputs.
-
----
-
-## 统计分析 / Statistical Analysis
-
-- **`stat_analysis.py`**  
-  交互式统计分析。读取累积 Excel，进行 t 检验、方差分析、相关分析，生成统计图表和报告。  
-  Interactive statistical analysis. Read cumulative Excel, perform t‑tests, ANOVA, correlation, generate statistical plots and reports.
-
----
-
-## 图像拟合 / Curve Averaging
-
-- **`average_curve_interactive.py`**  
-  读取归一化曲线文件（`.npy`），计算平均曲线和标准差带，绘制典型曲线图。  
-  Read normalized curve files (`.npy`), compute mean curve and standard deviation band, generate typical curve plots.
-
----
-
-## 诊断工具 / Diagnostic Tools
-
-- **`check_forceplate.py`**  
-  检查 C3D 文件的力板类型、校准矩阵和原始值，帮助定位数据问题。  
-  Check force plate type, calibration matrix, and raw values of C3D files to help diagnose data issues.
-
-- **`test_calibration.py`**  
-  简单测试脚本，输出指定文件的校准矩阵和力数据。  
-  Simple test script to output calibration matrix and force data for a given file.
-
----
-
-## OpenSim 导出 / OpenSim Export
-
-- **`c3d_to_opensim_finals.py`**  
-  将 C3D 文件转换为 OpenSim 所需的 `.trc`（标记点轨迹）和 `.mot`（地面反作用力）文件。  
-  Convert C3D files to OpenSim format (`.trc` for marker trajectories, `.mot` for ground reaction forces).
-
+  
 ---
 
 ## 使用流程 / Typical Workflow
@@ -115,7 +74,11 @@ This folder contains detailed documentation of the toolbox. Below is a brief int
    Place your C3D files in a folder (e.g., `data/`).
 
 2. **通道配置**：根据数据规范程度选择手动或自动配置。  
-   Configure channels according to data regularity, either manually or automatically.
+   - 手动：`python manual_config.py` → 输入文件夹路径 → 按提示为每个文件选择垂直力通道。  
+   - 自动：`python auto_config.py` → 输入文件夹路径 → 等待自动完成。  
+   Configure channels according to data regularity, either manually or automatically:
+     - Manual: `python manual_config.py` → enter folder path → select vertical force channel for each file.
+     - Automatic: `python auto_config.py` → enter folder path → wait for completion.
 
 3. **（可选）特征提取**：运行 `action_features.py --plot data/` 查看力曲线和特征值，辅助判断动作类型。  
    (Optional) Run `action_features.py --plot data/` to inspect force curves and features, helping you determine the movement type.
