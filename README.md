@@ -1,10 +1,12 @@
-```markdown
+##  `README.md`（中英双语完整版）
+
+```
 # Biomechanics Toolbox / 生物力学工具箱
 
 [中文](#chinese) | [English](#english)
 
 ---
-
+```
 ## Chinese
 
 ### 简介
@@ -19,8 +21,8 @@
 - **图像拟合**：对多次试验的归一化曲线求平均，绘制带标准差带的典型曲线
 - **OpenSim 导出**：自动生成 `.trc`（标记点轨迹）和 `.mot`（地面反作用力）文件
 - **高级配置**：
-  - **手动配置**（`manual_config.py`）：逐个文件选择垂直力通道，自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy）
-  - **自动配置**（`auto_config.py`）：自动排除力矩通道，选择垂直力并匹配所有分量，一键生成配置文件
+  - **手动配置**（`manual_config.py`）：运行后交互式输入文件夹路径，为每个文件手动选择垂直力通道，自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy）
+  - **自动配置**（`auto_config.py`）：运行后交互式输入文件夹路径，自动排除力矩通道，选择垂直力并匹配所有分量，一键生成配置文件
 - **多语言输出**：所有脚本输出均为中英双语，便于国际用户
 
 ### 安装
@@ -40,12 +42,14 @@ pip install -r requirements.txt
 2. **配置通道**（根据数据规范程度选择）：
    - 手动配置（逐个文件确认）：
      ```bash
-     python manual_config.py data/
+     python manual_config.py
      ```
+     然后按提示输入文件夹路径，并依次为每个文件选择垂直力通道编号。
    - 自动配置（一键完成）：
      ```bash
-     python auto_config.py data/
+     python auto_config.py
      ```
+     然后按提示输入文件夹路径，程序自动完成所有配置。
 3. **批量处理**：
    ```bash
    python batch_process_by_type.py
@@ -92,8 +96,8 @@ A Python toolbox for automated processing of C3D files in biomechanics. It suppo
 - **Curve averaging**: average normalized curves from multiple trials with standard deviation bands
 - **OpenSim export**: automatically create `.trc` (marker trajectories) and `.mot` (ground reaction forces) files
 - **Advanced configuration**:
-  - **Manual configuration** (`manual_config.py`): select vertical force channel per file, automatically match other components (Fx, Fy, Mx, My, Mz, COPx, COPy) based on plate number
-  - **Automatic configuration** (`auto_config.py`): exclude moment channels, choose the largest non‑momentum channel as vertical force, and match all components automatically
+  - **Manual configuration** (`manual_config.py`): run the script, enter folder path interactively, then manually select vertical force channel for each file; other components (Fx, Fy, Mx, My, Mz, COPx, COPy) are automatically matched based on plate number.
+  - **Automatic configuration** (`auto_config.py`): run the script, enter folder path interactively; the program automatically excludes moment channels, selects the vertical force channel, and matches all components.
 - **Bilingual output**: all script messages are in both Chinese and English for international accessibility
 
 ### Installation
@@ -113,12 +117,14 @@ pip install -r requirements.txt
 2. **Configure channels** (choose according to data regularity):
    - Manual configuration (interactive per file):
      ```bash
-     python manual_config.py data/
+     python manual_config.py
      ```
+     Then follow the prompts to enter folder path and select the vertical force channel index for each file.
    - Automatic configuration (one‑click):
      ```bash
-     python auto_config.py data/
+     python auto_config.py
      ```
+     Then follow the prompt to enter folder path; the program will handle everything automatically.
 3. **Batch processing**:
    ```bash
    python batch_process_by_type.py
@@ -147,5 +153,4 @@ This project is licensed under the MIT License – see the [LICENSE](LICENSE) fi
 If you use this toolbox in your research, please cite:
 ```
 [Citation – to be added after publication]
-```
 ```
