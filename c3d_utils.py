@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
 C3D文件通用处理函数（含项目配置支持、矩阵校准、多分量数据获取）
-版本：3.0 双语版，支持按文件配置
+版本：3.0 无缓存版，每次重新读取配置文件
 依赖：btk, numpy, scipy, json, os
 """
 
@@ -12,35 +12,28 @@ import config
 import json
 import os
 
-_config_cache = {}
-
 def get_project_config(c3d_file_path):
     """
     从 C3D 文件所在目录向上查找 project_config.json，并提取针对该文件的通道映射。
     返回配置字典（仅包含该文件的通道信息）。
     """
     folder = os.path.dirname(c3d_file_path)
-    if folder in _config_cache:
-        return _config_cache[folder]
-
     config_path = os.path.join(folder, 'project_config.json')
     file_config = {}
     if os.path.exists(config_path):
         try:
             with open(config_path, 'r', encoding='utf-8') as f:
                 config_data = json.load(f)
-            # 新格式：按文件配置
             file_channels = config_data.get('file_channels', {})
             filename = os.path.basename(c3d_file_path)
             if filename in file_channels:
                 file_config = {'channels': file_channels[filename]}
         except Exception as e:
             print(f"读取配置文件失败: {e}")
-
-    _config_cache[folder] = file_config
     return file_config
 
 def read_c3d(file_path):
+    """读取C3D文件，返回acq对象"""
     reader = btk.btkAcquisitionFileReader()
     reader.SetFilename(file_path)
     reader.Update()

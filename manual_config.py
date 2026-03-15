@@ -1,11 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-手动配置文件生成工具 (manual_config.py) 双语版
-功能：遍历文件夹内所有C3D文件，让用户手动选择垂直力通道，
+手动配置文件生成工具 (manual_config.py) 交互式双语版
+功能：运行时先询问文件夹路径，然后遍历文件夹内所有C3D文件，
+      对每个文件显示模拟通道列表，让用户手动选择垂直力通道，
       并自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy），
       生成按文件的 project_config.json。
 使用方式：
-    python manual_config.py <文件夹路径>
+    python manual_config.py
+    然后按提示输入文件夹路径
 """
 
 import os
@@ -17,11 +19,9 @@ import c3d_utils
 import re
 
 def clean_path(path):
-    """清理路径中的不可见字符 / Clean invisible characters from path"""
     return path.strip().lstrip('\u202a').lstrip('\u200e').lstrip('\u200f')
 
 def get_channel_info(acq):
-    """返回所有模拟通道的标签和绝对值最大值（用于排序）"""
     labels = []
     max_vals = []
     for i in range(acq.GetAnalogs().GetItemNumber()):
@@ -37,19 +37,14 @@ def get_channel_info(acq):
     return labels, max_vals
 
 def extract_plate_number(label):
-    """从通道标签中提取最后一个连续数字作为板号 / Extract plate number from label"""
     numbers = re.findall(r'\d+', label)
-    if numbers:
-        return numbers[-1]
-    return None
+    return numbers[-1] if numbers else None
 
 def main():
-    if len(sys.argv) < 2:
-        print("用法: python manual_config.py <文件夹路径>")
-        print("Usage: python manual_config.py <folder_path>")
-        sys.exit(1)
-
-    folder = clean_path(sys.argv[1])
+    print("手动配置工具（交互式双语版） / Manual Configuration Tool (Interactive Bilingual)")
+    folder = input("请输入要处理的文件夹路径: ").strip()
+    print("Enter the folder path to process:")
+    folder = clean_path(folder)
     if not os.path.isdir(folder):
         print(f"文件夹不存在: {folder} / Folder does not exist: {folder}")
         return

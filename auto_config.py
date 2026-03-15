@@ -1,11 +1,12 @@
 # -*- coding: utf-8 -*-
 """
-自动配置文件生成工具 (auto_config.py) 双语版
-功能：自动为文件夹内所有C3D文件配置垂直力通道（排除力矩通道），
-      并自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy），
+自动配置文件生成工具 (auto_config.py) 交互式双语版
+功能：运行时先询问文件夹路径，然后自动为文件夹内所有C3D文件配置垂直力通道
+      （排除力矩通道），并自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy），
       直接生成 project_config.json。
 使用方式：
-    python auto_config.py <文件夹路径>
+    python auto_config.py
+    然后按提示输入文件夹路径
 """
 
 import os
@@ -45,12 +46,10 @@ def extract_plate_number(label):
     return numbers[-1] if numbers else None
 
 def main():
-    if len(sys.argv) < 2:
-        print("用法: python auto_config.py <文件夹路径>")
-        print("Usage: python auto_config.py <folder_path>")
-        sys.exit(1)
-
-    folder = clean_path(sys.argv[1])
+    print("自动配置工具（交互式双语版） / Auto Configuration Tool (Interactive Bilingual)")
+    folder = input("请输入要处理的文件夹路径: ").strip()
+    print("Enter the folder path to process:")
+    folder = clean_path(folder)
     if not os.path.isdir(folder):
         print(f"文件夹不存在: {folder} / Folder does not exist: {folder}")
         return
@@ -63,7 +62,7 @@ def main():
     file_channels = {}
     for filename in sorted(c3d_files):
         file_path = os.path.join(folder, filename)
-        print(f"处理: {filename} / Processing: {filename}")
+        print(f"\n处理: {filename} / Processing: {filename}")
         acq = c3d_utils.read_c3d(file_path)
         labels, max_vals = get_channel_info(acq)
 
@@ -126,7 +125,7 @@ def main():
                     chan['cop_y'] = cand
                     break
 
-            print(f"自动匹配结果 / Auto-matched components for {filename}:")
+            print(f"自动匹配结果 / Auto-matched components:")
             print(f"  Fz = {chan['force_vz']}")
             if chan['force_vx']: print(f"  Fx = {chan['force_vx']}")
             if chan['force_vy']: print(f"  Fy = {chan['force_vy']}")
@@ -145,7 +144,7 @@ def main():
     output_path = os.path.join(folder, 'project_config.json')
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=4, ensure_ascii=False)
-    print(f"配置文件已生成: {output_path} / Configuration file generated: {output_path}")
+    print(f"\n配置文件已生成: {output_path} / Configuration file generated: {output_path}")
 
 if __name__ == '__main__':
     main()
