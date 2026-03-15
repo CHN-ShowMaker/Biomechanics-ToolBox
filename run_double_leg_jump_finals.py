@@ -1,14 +1,13 @@
 # -*- coding: utf-8 -*-
 """
-跑动双腿跳分析脚本 (适配3.0核心模块，双语版)
-功能：读取C3D，检测腾空、起跳合力峰、落地冲击，计算指标，绘图，可选导出OpenSim文件，
-      并自动保存结果到Excel汇总表。
+跑动双腿跳分析脚本 (适配3.0核心模块，包含曲线保存)
 """
 
 import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+from scipy import interpolate
 
 import config
 import c3d_utils
@@ -19,21 +18,25 @@ from c3d_to_opensim_finals import c3d_to_trc, c3d_to_grf_mot
 plot_utils.setup_chinese_font()
 
 def analyze_double_leg_jump(c3d_file_path, output_dir='.', export_opensim=False):
-    # 1. 读取C3D并获取力通道
     acq = c3d_utils.read_c3d(c3d_file_path)
     print("文件读取成功！File loaded successfully!")
     print("="*30)
 
     force_dict, fs = c3d_utils.get_force_data(acq, c3d_file_path)
-    force_raw = force_dict['Fz']  # 垂直力
+    force_raw = force_dict['Fz']
     print(f"垂直力采样率: {fs} Hz / Vertical force sampling rate: {fs} Hz")
 
-    # 2. 预处理力信号
     force_raw = np.abs(force_raw)
     force_filt = c3d_utils.lowpass_filter(force_raw, fs)
     time = np.arange(len(force_filt)) / fs
 
-    # 3. 检测腾空区间
+    # ---------- 保存归一化曲线 ----------
+    interp_func = interpolate.interp1d(time, force_filt, kind='cubic', fill_value='extrapolate')
+    norm_time = np.linspace(0, 100, 101)
+    norm_force = interp_func(norm_time / 100 * time[-1])
+    curve_path = os.path.join(output_dir, os.path.basename(c3d_file_path).replace('.c3d', '_curve.npy'))
+    np.save(curve_path, norm_force)
+
     threshold = config.JUMP_THRESHOLD_RATIO * np.max(force_filt)
     in_flight = force_filt < threshold
     flight_starts = np.where(np.diff(in_flight.astype(int)) == 1)[0] + 1
@@ -48,7 +51,6 @@ def analyze_double_leg_jump(c3d_file_path, output_dir='.', export_opensim=False)
     print(f"检测到腾空区间：离地帧 {takeoff_frame}，落地帧 {landing_frame}")
     print(f"Flight phase detected: takeoff frame {takeoff_frame}, landing frame {landing_frame}")
 
-    # 4. 起跳合力峰（离地前最大值）
     pre_window = min(config.JUMP_PRE_WINDOW, takeoff_frame)
     segment_before = force_filt[takeoff_frame - pre_window : takeoff_frame]
     takeoff_peak_frame = takeoff_frame - pre_window + np.argmax(segment_before)
@@ -56,7 +58,6 @@ def analyze_double_leg_jump(c3d_file_path, output_dir='.', export_opensim=False)
     print(f"起跳合力峰: {takeoff_peak_force:.1f} N，帧号 {takeoff_peak_frame}")
     print(f"Takeoff resultant peak: {takeoff_peak_force:.1f} N, frame {takeoff_peak_frame}")
 
-    # 5. 落地冲击峰
     post_window = min(config.JUMP_POST_WINDOW, len(force_filt) - landing_frame)
     segment_after = force_filt[landing_frame : landing_frame + post_window]
     landing_peak_frame = landing_frame + np.argmax(segment_after)
@@ -64,11 +65,9 @@ def analyze_double_leg_jump(c3d_file_path, output_dir='.', export_opensim=False)
     print(f"落地冲击峰: {landing_peak_force:.1f} N，帧号 {landing_peak_frame}")
     print(f"Landing impact peak: {landing_peak_force:.1f} N, frame {landing_peak_frame}")
 
-    # 6. 腾空时间
     flight_time = (landing_frame - takeoff_frame) / fs
     print(f"腾空时间: {flight_time:.3f} s / Flight time: {flight_time:.3f} s")
 
-    # 7. 绘图
     events = {
         '离地 Takeoff': takeoff_frame,
         '落地 Landing': landing_frame,
@@ -86,7 +85,6 @@ def analyze_double_leg_jump(c3d_file_path, output_dir='.', export_opensim=False)
     )
     print(f"力曲线图已保存至: {save_path} / Force curve plot saved to: {save_path}")
 
-    # 8. 导出OpenSim
     if export_opensim:
         trc_path = os.path.join(output_dir, os.path.basename(c3d_file_path).replace('.c3d', '_markers.trc'))
         mot_path = os.path.join(output_dir, os.path.basename(c3d_file_path).replace('.c3d', '_grf.mot'))
@@ -97,7 +95,6 @@ def analyze_double_leg_jump(c3d_file_path, output_dir='.', export_opensim=False)
         except Exception as e:
             print(f"OpenSim 导出失败: {e} / OpenSim export failed: {e}")
 
-    # 9. 保存结果
     raw_folder = os.path.dirname(c3d_file_path)
     result = {
         '文件名 Filename': os.path.basename(c3d_file_path),
