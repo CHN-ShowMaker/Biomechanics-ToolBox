@@ -24,7 +24,7 @@
   - **手动配置**（`manual_config.py`）：运行后交互式输入文件夹路径，为每个文件自动检测所有力板，然后依次为每块力板选择垂直力通道，并指定侧别（1=左脚，2=右脚），自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy）
   - **自动配置**（`auto_config.py`）：运行后交互式输入文件夹路径，自动检测所有力板，为每块力板选择最大值最大的通道作为垂直力，并匹配其他分量，一键生成配置文件
 - **多语言输出**：所有脚本输出均为中英双语，便于国际用户
-- - **多力板支持**：自动检测任意数量的力板，并为每块力板独立配置通道（Fx, Fy, Fz, Mx, My, Mz, COPx, COPy）
+- **多力板支持**：自动检测任意数量的力板，并为每块力板独立配置通道（Fx, Fy, Fz, Mx, My, Mz, COPx, COPy）
 - **侧别配置**：在手动配置时可为每块力板指定侧别（1=左脚，2=右脚），步态分析自动按侧别输出左右脚分离的结果
 - **长格式累积输出**：每个力板单独一行写入累积 Excel，包含文件名、动作类型、侧别、板号及各动作指标，便于直接导入统计软件进行分组比较
 - **图片和曲线自动分类**：力曲线图和归一化曲线按侧别（left/right/unknown）保存在 `images/` 和 `curves/` 子文件夹中
@@ -52,6 +52,7 @@ pip install -r requirements.txt
    - 手动配置（逐个文件确认）：
      ```bash
      python manual_config.py
+      ```
      然后按提示输入文件夹路径，并依次为每个检测到的力板选择垂直力通道编号，同时指定侧别（1=左脚，2=右脚，直接回车为 unknown）。
    - 自动配置（一键完成）：
      ```bash
@@ -61,7 +62,7 @@ pip install -r requirements.txt
 3. **批量处理**：
    ```bash
    python batch_process_by_type.py
-   ```a
+   ```
    输入文件夹路径和动作类型（gait/single_jump/double_jump/cmj/cut），结果保存在时间戳文件夹（如 `output_20250315_...`）中。
    > 对于步态，图片和曲线将按侧别分类保存。
 4. **（可选）特征提取**：
@@ -108,7 +109,7 @@ A Python toolbox for automated processing of C3D files in biomechanics. It suppo
   - **Manual configuration** (`manual_config.py`): run the script, enter folder path interactively; the script automatically detects all force plates in each file and lets you select the vertical force channel and side (1=left, 2=right) for each plate; other components (Fx, Fy, Mx, My, Mz, COPx, COPy) are automatically matched based on plate number.
   - **Automatic configuration** (`auto_config.py`): run the script, enter folder path interactively; the program automatically detects all force plates, selects the channel with the highest maximum as the vertical force for each plate, and matches all other components.
 - **Bilingual output**: all script messages are in both Chinese and English for international accessibility
-- - **Multi‑force plate support**: automatically detect any number of force plates and configure each plate independently (Fx, Fy, Fz, Mx, My, Mz, COPx, COPy)
+- **Multi‑force plate support**: automatically detect any number of force plates and configure each plate independently (Fx, Fy, Fz, Mx, My, Mz, COPx, COPy)
 - **Side configuration**: during manual configuration, assign a side (1=left, 2=right) to each plate; gait analysis automatically outputs left/right separated results
 - **Long‑format cumulative output**: each force plate is written as a separate row in the cumulative Excel, including filename, movement type, side, plate number, and all metrics – ready for direct import into statistical software for group comparisons
 - **Automatic image and curve sorting**: force plots and normalized curves are saved in `images/` and `curves/` subfolders categorized by side (left/right/unknown)
@@ -150,15 +151,15 @@ For multi‑force plate tests, we recommend using gait data containing two force
    ```
    Enter folder path and movement type (gait/single_jump/double_jump/cmj/cut). Results are saved in a timestamped folder (e.g., `output_20250315_...`).
    > For gait, images and curves are sorted by side.
-5. **(Optional) Feature extraction**:
+4. **(Optional) Feature extraction**:
    ```bash
    python action_features.py --plot data/
    ```
-6. **(Optional) Statistical analysis**:
+5. **(Optional) Statistical analysis**:
    ```bash
    python stat_analysis.py
    ```
-7. **(Optional) Curve averaging**:
+6. **(Optional) Curve averaging**:
    ```bash
    python average_curve_interactive.py
    ```
