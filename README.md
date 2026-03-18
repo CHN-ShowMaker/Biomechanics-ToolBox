@@ -21,9 +21,13 @@
 - **图像拟合**：对多次试验的归一化曲线求平均，绘制带标准差带的典型曲线
 - **OpenSim 导出**：自动生成 `.trc`（标记点轨迹）和 `.mot`（地面反作用力）文件
 - **高级配置**：
-  - **手动配置**（`manual_config.py`）：运行后交互式输入文件夹路径，为每个文件手动选择垂直力通道，自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy）
-  - **自动配置**（`auto_config.py`）：运行后交互式输入文件夹路径，自动排除力矩通道，选择垂直力并匹配所有分量，一键生成配置文件
+  - **手动配置**（`manual_config.py`）：运行后交互式输入文件夹路径，为每个文件自动检测所有力板，然后依次为每块力板选择垂直力通道，并指定侧别（1=左脚，2=右脚），自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy）
+  - **自动配置**（`auto_config.py`）：运行后交互式输入文件夹路径，自动检测所有力板，为每块力板选择最大值最大的通道作为垂直力，并匹配其他分量，一键生成配置文件
 - **多语言输出**：所有脚本输出均为中英双语，便于国际用户
+- - **多力板支持**：自动检测任意数量的力板，并为每块力板独立配置通道（Fx, Fy, Fz, Mx, My, Mz, COPx, COPy）
+- **侧别配置**：在手动配置时可为每块力板指定侧别（1=左脚，2=右脚），步态分析自动按侧别输出左右脚分离的结果
+- **长格式累积输出**：每个力板单独一行写入累积 Excel，包含文件名、动作类型、侧别、板号及各动作指标，便于直接导入统计软件进行分组比较
+- **图片和曲线自动分类**：力曲线图和归一化曲线按侧别（left/right/unknown）保存在 `images/` 和 `curves/` 子文件夹中
 
 ### 安装
 ```bash
@@ -38,9 +42,9 @@ pip install -r requirements.txt
 ```
 ## 示例数据
 
-本仓库的 `Sample03/` 文件夹中提供了三个示例C3D文件（来源于 [C3D官网](https://www.c3d.org/sampledata.html)），你可以直接用它们来测试工具箱的流程。
+本仓库的 `Sample03/` 文件夹中提供了示例C3D文件，你可以直接用它们来测试工具箱的流程。
 
-你也可以从 [示例C3D文件官网](https://www.c3d.org/sampledata.html) 下载更多示例文件进行测试。
+对于多力板测试，我们建议使用包含两块力板的步态数据（可自行生成或从公开数据集中获取）。
 
 ### 快速开始
 1. **准备数据**：将 C3D 文件放入一个文件夹，例如 `data/`。
@@ -48,8 +52,7 @@ pip install -r requirements.txt
    - 手动配置（逐个文件确认）：
      ```bash
      python manual_config.py
-     ```
-     然后按提示输入文件夹路径，并依次为每个文件选择垂直力通道编号。
+     然后按提示输入文件夹路径，并依次为每个检测到的力板选择垂直力通道编号，同时指定侧别（1=左脚，2=右脚，直接回车为 unknown）。
    - 自动配置（一键完成）：
      ```bash
      python auto_config.py
@@ -60,6 +63,7 @@ pip install -r requirements.txt
    python batch_process_by_type.py
    ```a
    输入文件夹路径和动作类型（gait/single_jump/double_jump/cmj/cut），结果保存在时间戳文件夹（如 `output_20250315_...`）中。
+   > 对于步态，图片和曲线将按侧别分类保存。
 4. **（可选）特征提取**：
    ```bash
    python action_features.py --plot data/
@@ -101,9 +105,13 @@ A Python toolbox for automated processing of C3D files in biomechanics. It suppo
 - **Curve averaging**: average normalized curves from multiple trials with standard deviation bands
 - **OpenSim export**: automatically create `.trc` (marker trajectories) and `.mot` (ground reaction forces) files
 - **Advanced configuration**:
-  - **Manual configuration** (`manual_config.py`): run the script, enter folder path interactively, then manually select vertical force channel for each file; other components (Fx, Fy, Mx, My, Mz, COPx, COPy) are automatically matched based on plate number.
-  - **Automatic configuration** (`auto_config.py`): run the script, enter folder path interactively; the program automatically excludes moment channels, selects the vertical force channel, and matches all components.
+  - **Manual configuration** (`manual_config.py`): run the script, enter folder path interactively; the script automatically detects all force plates in each file and lets you select the vertical force channel and side (1=left, 2=right) for each plate; other components (Fx, Fy, Mx, My, Mz, COPx, COPy) are automatically matched based on plate number.
+  - **Automatic configuration** (`auto_config.py`): run the script, enter folder path interactively; the program automatically detects all force plates, selects the channel with the highest maximum as the vertical force for each plate, and matches all other components.
 - **Bilingual output**: all script messages are in both Chinese and English for international accessibility
+- - **Multi‑force plate support**: automatically detect any number of force plates and configure each plate independently (Fx, Fy, Fz, Mx, My, Mz, COPx, COPy)
+- **Side configuration**: during manual configuration, assign a side (1=left, 2=right) to each plate; gait analysis automatically outputs left/right separated results
+- **Long‑format cumulative output**: each force plate is written as a separate row in the cumulative Excel, including filename, movement type, side, plate number, and all metrics – ready for direct import into statistical software for group comparisons
+- **Automatic image and curve sorting**: force plots and normalized curves are saved in `images/` and `curves/` subfolders categorized by side (left/right/unknown)
 
 ### Installation
 ```bash
@@ -119,9 +127,9 @@ pip install -r requirements.txt
 
 ## Example Data
 
-The `Sample03/` folder in this repository contains three sample C3D files (from the [C3D website](https://www.c3d.org/sampledata.html)) that you can use to test the toolbox workflow.
+The `Sample03/` folder in this repository contains three sample C3D files that you can use to test the toolbox workflow.
 
-You can also download more sample files from the [C3D website](https://www.c3d.org/sampledata.html) for testing.
+For multi‑force plate tests, we recommend using gait data containing two force plates (can be generated or obtained from public datasets).
 
 ### Quick Start
 1. **Prepare data**: place your C3D files in a folder, e.g., `data/`.
@@ -130,7 +138,7 @@ You can also download more sample files from the [C3D website](https://www.c3d.o
      ```bash
      python manual_config.py
      ```
-     Then follow the prompts to enter folder path and select the vertical force channel index for each file.
+     Then follow the prompts to enter the folder path. For each detected force plate, select the vertical force channel index and specify the side (1=left, 2=right, Enter for unknown).
    - Automatic configuration (one‑click):
      ```bash
      python auto_config.py
@@ -141,15 +149,16 @@ You can also download more sample files from the [C3D website](https://www.c3d.o
    python batch_process_by_type.py
    ```
    Enter folder path and movement type (gait/single_jump/double_jump/cmj/cut). Results are saved in a timestamped folder (e.g., `output_20250315_...`).
-4. **(Optional) Feature extraction**:
+   > For gait, images and curves are sorted by side.
+5. **(Optional) Feature extraction**:
    ```bash
    python action_features.py --plot data/
    ```
-5. **(Optional) Statistical analysis**:
+6. **(Optional) Statistical analysis**:
    ```bash
    python stat_analysis.py
    ```
-6. **(Optional) Curve averaging**:
+7. **(Optional) Curve averaging**:
    ```bash
    python average_curve_interactive.py
    ```
