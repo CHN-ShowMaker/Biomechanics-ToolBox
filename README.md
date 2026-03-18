@@ -46,6 +46,8 @@ pip install -r requirements.txt
 
 对于多力板测试，我们建议使用包含两块力板的步态数据（可自行生成或从公开数据集中获取）。
 
+此外，仓库根目录下还提供了一个示例累积 Excel 文件 gait_cumulative_example.xlsx，你可以直接用 stat_analysis.py 进行统计分析，体验工具箱的统计功能。
+
 ### 快速开始
 1. **准备数据**：将 C3D 文件放入一个文件夹，例如 `data/`。
 2. **配置通道**（根据数据规范程度选择）：
@@ -131,6 +133,8 @@ pip install -r requirements.txt
 The `Sample03/` folder in this repository contains three sample C3D files that you can use to test the toolbox workflow.
 
 For multi‑force plate tests, we recommend using gait data containing two force plates (can be generated or obtained from public datasets).
+
+Additionally, an example cumulative Excel file gait_cumulative_example.xlsx is provided in the root directory. You can directly use it with stat_analysis.py to explore the statistical analysis features.
 
 ### Quick Start
 1. **Prepare data**: place your C3D files in a folder, e.g., `data/`.
