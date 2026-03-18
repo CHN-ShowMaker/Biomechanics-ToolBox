@@ -1,7 +1,8 @@
 # -*- coding: utf-8 -*-
 """
-C3D 转 OpenSim 格式模块 (双语版)
+C3D 转 OpenSim 格式模块 (多力板支持版)
 优先使用配置文件中的通道映射，并应用校准矩阵。
+支持导出指定力板的地面反作用力文件。
 """
 
 import btk
@@ -69,17 +70,28 @@ def c3d_to_trc(c3d_file, trc_file, marker_units='mm'):
     print(f"已生成 .trc 文件: {trc_file} / .trc file generated: {trc_file}")
 
 
-def c3d_to_grf_mot(c3d_file, mot_file):
+def c3d_to_grf_mot(c3d_file, mot_file, plate_index=0):
     """
-    从 C3D 文件中提取地面反作用力和力矩，保存为 .mot 文件（OpenSim 外部载荷）。
+    从 C3D 文件中提取指定力板的地面反作用力和力矩，保存为 .mot 文件（OpenSim 外部载荷）。
     使用校准后的数据，并从项目配置中读取通道映射。
+    参数:
+        c3d_file: C3D 文件路径
+        mot_file: 输出 .mot 文件路径
+        plate_index: 要导出的力板索引 (0-based)，默认导出第一块
     """
     reader = btk.btkAcquisitionFileReader()
     reader.SetFilename(c3d_file)
     reader.Update()
     acq = reader.GetOutput()
 
-    force_dict, fs = c3d_utils.get_force_data(acq, c3d_file)
+    # 获取所有力板数据
+    plates_data, fs = c3d_utils.get_force_data(acq, c3d_file)
+    if plate_index >= len(plates_data):
+        print(f"错误：力板索引 {plate_index} 超出范围（共 {len(plates_data)} 块），将导出第一块。")
+        print(f"Error: Plate index {plate_index} out of range (total {len(plates_data)}), exporting first plate.")
+        plate_index = 0
+
+    force_dict = plates_data[plate_index]
     frames = len(force_dict['Fz'])
     time = np.arange(frames) / fs
 
@@ -106,4 +118,26 @@ def c3d_to_grf_mot(c3d_file, mot_file):
         for _, row in df.iterrows():
             f.write('\t'.join(['{:.6f}'.format(v) for v in row]) + '\n')
 
-    print(f"已生成 .mot 文件: {mot_file} / .mot file generated: {mot_file}")
+    print(f"已生成 .mot 文件 (力板 {plate_index+1}): {mot_file} / .mot file (plate {plate_index+1}) generated: {mot_file}")
+
+
+def c3d_to_grf_mot_all(c3d_file, output_dir):
+    """
+    为 C3D 文件中的所有力板生成独立的 .mot 文件，保存在输出目录下的 plate_X 子文件夹中。
+    """
+    reader = btk.btkAcquisitionFileReader()
+    reader.SetFilename(c3d_file)
+    reader.Update()
+    acq = reader.GetOutput()
+
+    plates_data, fs = c3d_utils.get_force_data(acq, c3d_file)
+    if not plates_data:
+        print("未找到力板数据 / No force plate data")
+        return
+
+    base_name = os.path.basename(c3d_file).replace('.c3d', '')
+    for i in range(len(plates_data)):
+        plate_dir = os.path.join(output_dir, f'plate_{i+1}')
+        os.makedirs(plate_dir, exist_ok=True)
+        mot_file = os.path.join(plate_dir, f'{base_name}_grf.mot')
+        c3d_to_grf_mot(c3d_file, mot_file, plate_index=i)
