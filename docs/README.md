@@ -98,8 +98,10 @@ Each plate is written as a separate row in the cumulative Excel, including side 
 
 6. **（可选）统计分析**：运行 `stat_analysis.py` 对累积 Excel 进行统计检验。  
    (Optional) Run `stat_analysis.py` to perform statistical tests on cumulative Excel.
+   根目录中提供了示例累积 Excel 文件 gait_cumulative_example.xlsx，可直接用于测试统计分析功能。
+The root directory contains an example cumulative Excel file gait_cumulative_example.xlsx that you can use to test the statistical analysis features.
 
-7. **（可选）图像拟合**：运行 `average_curve_interactive.py` 对多次试验取平均曲线。  
+8. **（可选）图像拟合**：运行 `average_curve_interactive.py` 对多次试验取平均曲线。  
    (Optional) Run `average_curve_interactive.py` to generate mean curves from multiple trials.
 
 ---
