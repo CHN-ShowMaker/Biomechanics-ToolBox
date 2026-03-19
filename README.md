@@ -34,7 +34,10 @@ conda activate bio
 pip install -r requirements.txt
 ```
 示例数据
-本仓库的 Sample03/ 文件夹中提供了示例 C3D 文件，你可以直接用它们来测试工具箱的流程。
+
+在 `examples/` 文件夹中，我们提供了一些示例 C3D 文件，可用于测试完整的 C3D 数据处理流程。
+
+在根目录的 `example_data.xlsx` 文件中，包含了一些准备好的示例数据，可用于 `stat_analysis.py` 脚本进行统计分析测试。
 
 快速开始
 准备数据：将 C3D 文件放入一个文件夹，例如 data/。
@@ -119,9 +122,15 @@ cd Biomechanics-ToolBox
 conda create -n bio python=3.9
 conda activate bio
 pip install -r requirements.txt
-Example Data
-The Sample03/ folder in this repository contains sample C3D files that you can use to test the toolbox workflow.
+
 ```
+
+Example Data
+
+In the `examples/` folder, we provide several sample C3D files that can be used to test the complete C3D data processing workflow.
+
+The `example_data.xlsx` file in the root directory contains prepared data for testing statistical analysis with the `stat_analysis.py` script.
+
 Quick Start
 Prepare data: place your C3D files in a folder, e.g., data/.
 
