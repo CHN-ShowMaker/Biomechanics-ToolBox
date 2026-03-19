@@ -96,6 +96,17 @@ This folder contains detailed documentation of the toolbox. Below is a brief int
    (Optional) Run `average_curve_interactive.py` to generate mean curves from multiple trials.
 
 ---
+## 示例数据
+
+在 `examples/` 文件夹中，我们提供了一些示例 C3D 文件，可用于测试完整的 C3D 数据处理流程。
+
+在根目录的 `example_data.xlsx` 文件中，包含了一些准备好的示例数据，可用于 `stat_analysis.py` 脚本进行统计分析测试。
+
+## Example Data
+
+In the `examples/` folder, we provide several sample C3D files that can be used to test the complete C3D data processing workflow.
+
+The `example_data.xlsx` file in the root directory contains prepared data for testing statistical analysis with the `stat_analysis.py` script.
 
 ## 常见问题 / Frequently Asked Questions
 
