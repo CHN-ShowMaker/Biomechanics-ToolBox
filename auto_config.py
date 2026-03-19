@@ -1,9 +1,9 @@
 # -*- coding: utf-8 -*-
 """
 自动配置文件生成工具 (auto_config.py) 交互式双语版
-功能：运行时先询问文件夹路径，然后自动为文件夹内所有C3D文件配置多力板通道
-      （排除力矩通道），自动检测每个力板的垂直力通道，并匹配同板的其他分量，
-      生成包含 force_plates 列表的 project_config.json。
+功能：运行时先询问文件夹路径，然后自动为文件夹内所有C3D文件配置垂直力通道
+      （排除力矩通道），并自动匹配同板的其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy），
+      直接生成 project_config.json。
 使用方式：
     python auto_config.py
     然后按提示输入文件夹路径
@@ -22,7 +22,6 @@ def clean_path(path):
     return path.strip().lstrip('\u202a').lstrip('\u200e').lstrip('\u200f')
 
 def get_channel_info(acq):
-    """获取所有模拟通道的标签和最大值"""
     labels = []
     max_vals = []
     for i in range(acq.GetAnalogs().GetItemNumber()):
@@ -43,49 +42,11 @@ def is_momentum(label):
     return any(kw in upper for kw in ['MX', 'MY', 'MZ'])
 
 def extract_plate_number(label):
-    """从标签中提取数字后缀"""
     numbers = re.findall(r'\d+', label)
     return numbers[-1] if numbers else None
 
-def match_components_for_plate(plate_num, labels_in_plate, fz_label):
-    """
-    为指定力板匹配其他分量（Fx, Fy, Mx, My, Mz, COPx, COPy）
-    返回该板的通道映射字典（包含 plate_id 和所有分量）
-    """
-    chan = {
-        'plate_id': int(plate_num),
-        'force_vz': fz_label,
-        'force_vx': None,
-        'force_vy': None,
-        'torque_x': None,
-        'torque_y': None,
-        'torque_z': None,
-        'cop_x': None,
-        'cop_y': None
-    }
-    labels_set = set(labels_in_plate)
-    # 候选列表
-    candidates = {
-        'force_vx': [f'FX{plate_num}', f'Fx{plate_num}'],
-        'force_vy': [f'FY{plate_num}', f'Fy{plate_num}'],
-        'torque_x': [f'MX{plate_num}', f'Mx{plate_num}'],
-        'torque_y': [f'MY{plate_num}', f'My{plate_num}'],
-        'torque_z': [f'MZ{plate_num}', f'Mz{plate_num}'],
-        'cop_x': [f'COP{plate_num}.X', f'COP{plate_num}_X', f'Force.COPx{plate_num}', f'COP_X{plate_num}'],
-        'cop_y': [f'COP{plate_num}.Y', f'COP{plate_num}_Y', f'Force.COPy{plate_num}', f'COP_Y{plate_num}']
-    }
-    for comp, cand_list in candidates.items():
-        for cand in cand_list:
-            if cand in labels_set:
-                chan[comp] = cand
-                break
-    return chan
-
 def main():
-    print("="*60)
     print("自动配置工具（交互式双语版） / Auto Configuration Tool (Interactive Bilingual)")
-    print("="*60)
-
     folder = input("请输入要处理的文件夹路径: ").strip()
     print("Enter the folder path to process:")
     folder = clean_path(folder)
@@ -101,61 +62,89 @@ def main():
     file_channels = {}
     for filename in sorted(c3d_files):
         file_path = os.path.join(folder, filename)
-        print(f"\n处理文件: {filename} / Processing: {filename}")
-
-        try:
-            acq = c3d_utils.read_c3d(file_path)
-        except Exception as e:
-            print(f"读取C3D失败: {e} / Failed to read C3D: {e}")
-            continue
-
+        print(f"\n处理: {filename} / Processing: {filename}")
+        acq = c3d_utils.read_c3d(file_path)
         labels, max_vals = get_channel_info(acq)
 
-        # 按板号分组（排除力矩通道）
-        plates_dict = {}
-        for idx, label in enumerate(labels):
-            if is_momentum(label):
-                continue
-            plate_num = extract_plate_number(label)
-            if plate_num is None:
-                continue
-            if plate_num not in plates_dict:
-                plates_dict[plate_num] = {'indices': [], 'labels': [], 'max_vals': []}
-            plates_dict[plate_num]['indices'].append(idx)
-            plates_dict[plate_num]['labels'].append(label)
-            plates_dict[plate_num]['max_vals'].append(max_vals[idx])
-
-        if not plates_dict:
-            print("  警告：未找到任何带数字后缀的非力矩通道，跳过该文件 / Warning: No plate-numbered non-momentum channels found, skipping")
+        candidate_indices = [i for i, label in enumerate(labels) if not is_momentum(label)]
+        if not candidate_indices:
+            print(f"警告: {filename} 中未找到非力矩通道，跳过 / Warning: No non‑momentum channels found in {filename}, skipping")
             continue
 
-        # 为每个力板生成配置
-        force_plates = []
-        for plate_num_str, info in plates_dict.items():
-            # 在该板内选择最大值最大的通道作为垂直力通道
-            best_idx_in_plate = info['indices'][np.argmax(info['max_vals'])]
-            fz_label = labels[best_idx_in_plate]
-            # 匹配其他分量
-            chan = match_components_for_plate(plate_num_str, info['labels'], fz_label)
-            force_plates.append(chan)
+        best_idx = max(candidate_indices, key=lambda i: max_vals[i])
+        fz_label = labels[best_idx]
 
-        # 输出检测结果
-        print(f"  检测到 {len(force_plates)} 块力板 / Detected {len(force_plates)} force plate(s):")
-        for i, plate in enumerate(force_plates):
-            print(f"    力板 {plate['plate_id']}: Fz = {plate['force_vz']}, Fx = {plate['force_vx']}, Fy = {plate['force_vy']}, "
-                  f"Mx = {plate['torque_x']}, My = {plate['torque_y']}, Mz = {plate['torque_z']}, "
-                  f"COPx = {plate['cop_x']}, COPy = {plate['cop_y']}")
+        chan = {
+            'force_vz': fz_label,
+            'force_vx': None,
+            'force_vy': None,
+            'torque_x': None,
+            'torque_y': None,
+            'torque_z': None,
+            'cop_x': None,
+            'cop_y': None
+        }
 
-        file_channels[filename] = {'force_plates': force_plates}
+        plate_num = extract_plate_number(fz_label)
+        all_labels_set = set(labels)
 
-    # 写入配置文件
+        if plate_num:
+            # 匹配 Fx, Fy, Mx, My, Mz
+            candidates = {
+                'force_vx': [f'FX{plate_num}', f'Fx{plate_num}'],
+                'force_vy': [f'FY{plate_num}', f'Fy{plate_num}'],
+                'torque_x': [f'MX{plate_num}', f'Mx{plate_num}'],
+                'torque_y': [f'MY{plate_num}', f'My{plate_num}'],
+                'torque_z': [f'MZ{plate_num}', f'Mz{plate_num}'],
+            }
+            for comp, cand_list in candidates.items():
+                for cand in cand_list:
+                    if cand in all_labels_set:
+                        chan[comp] = cand
+                        break
+
+            # 匹配 COP X 和 Y
+            cop_candidates_x = [
+                f'COP{plate_num}.X',
+                f'COP{plate_num}_X',
+                f'Force.COPx{plate_num}',
+                f'COP_X{plate_num}'
+            ]
+            cop_candidates_y = [
+                f'COP{plate_num}.Y',
+                f'COP{plate_num}_Y',
+                f'Force.COPy{plate_num}',
+                f'COP_Y{plate_num}'
+            ]
+            for cand in cop_candidates_x:
+                if cand in all_labels_set:
+                    chan['cop_x'] = cand
+                    break
+            for cand in cop_candidates_y:
+                if cand in all_labels_set:
+                    chan['cop_y'] = cand
+                    break
+
+            print(f"自动匹配结果 / Auto-matched components:")
+            print(f"  Fz = {chan['force_vz']}")
+            if chan['force_vx']: print(f"  Fx = {chan['force_vx']}")
+            if chan['force_vy']: print(f"  Fy = {chan['force_vy']}")
+            if chan['torque_x']: print(f"  Mx = {chan['torque_x']}")
+            if chan['torque_y']: print(f"  My = {chan['torque_y']}")
+            if chan['torque_z']: print(f"  Mz = {chan['torque_z']}")
+            if chan['cop_x']: print(f"  COPx = {chan['cop_x']}")
+            if chan['cop_y']: print(f"  COPy = {chan['cop_y']}")
+        else:
+            print("警告：无法从标签中提取板号，其他分量将保持为空。")
+            print("Warning: Could not extract plate number from label, other components will be left empty.")
+
+        file_channels[filename] = chan
+
     config = {'file_channels': file_channels}
     output_path = os.path.join(folder, 'project_config.json')
     with open(output_path, 'w', encoding='utf-8') as f:
         json.dump(config, f, indent=4, ensure_ascii=False)
-
     print(f"\n配置文件已生成: {output_path} / Configuration file generated: {output_path}")
-    print("包含以下文件的配置: / Configured files:", list(file_channels.keys()))
 
 if __name__ == '__main__':
     main()

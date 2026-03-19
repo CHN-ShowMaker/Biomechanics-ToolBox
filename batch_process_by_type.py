@@ -3,8 +3,6 @@
 按动作类型批量处理脚本 (增强版：自动整理输出文件，双语版)
 功能：指定包含C3D文件的文件夹和动作类型，自动调用对应分析脚本处理所有文件，
       并生成总结果汇总表，输出整理到时间戳子文件夹。
-注意：步态分析脚本已直接将图片和曲线保存到 images/侧别 和 curves/侧别 子文件夹，
-      因此不再需要移动根目录下的 PNG 文件。
 """
 
 import os
@@ -84,10 +82,6 @@ def process_folder_by_type(data_folder, action_type):
             continue
 
     # ---------- 文件整理 ----------
-    # 注意：步态分析脚本已直接将图片保存到 images/侧别 子文件夹，不再需要移动根目录下的 PNG。
-    # 其他分析脚本（跳跃等）可能仍在根目录生成图片，但为了简化，此处暂时注释掉图片移动代码。
-    # 如有需要，可后续为其他脚本添加分类保存功能。
-    """
     # 1. 创建 images 子文件夹并移动图片
     images_dir = os.path.join(output_subdir, 'images')
     os.makedirs(images_dir, exist_ok=True)
@@ -95,7 +89,6 @@ def process_folder_by_type(data_folder, action_type):
         shutil.move(png, os.path.join(images_dir, os.path.basename(png)))
     print(f"图片已整理至 {images_dir}")
     print(f"Images moved to {images_dir}")
-    """
 
     # 2. 创建 opensim_files 子文件夹并分类存放 .trc/.mot
     opensim_dir = os.path.join(output_subdir, 'opensim_files')
